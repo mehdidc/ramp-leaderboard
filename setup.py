@@ -42,6 +42,8 @@ if __name__ == "__main__":
             'Operating System :: MacOS'],
         install_requires=[
             'tabulate',
+            'clize',
+            'numpy',
             'pandas',
         ],
         platforms='any',
