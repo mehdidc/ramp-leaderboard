@@ -9,11 +9,11 @@ with open('README.md', encoding='utf-8') as f:
 
 DISTNAME = 'ramp-leaderboard'
 DESCRIPTION = "Minimal RAMP Leaderboard"
-MAINTAINER = 'Mehdi CHerti'
+MAINTAINER = 'Mehdi Cherti'
 MAINTAINER_EMAIL = 'mehdicherti@gmail.com'
-URL = 'https://github.com/paris-saclay-cds/ramp-leaderboard'
+URL = 'https://github.com/mehdidc/ramp-leaderboard'
 LICENSE = 'BSD (3-clause)'
-DOWNLOAD_URL = 'https://github.com/paris-saclay-cds/ramp-leaderboard'
+DOWNLOAD_URL = 'https://github.com/mehdidc/ramp-leaderboard'
 
 
 if __name__ == "__main__":
