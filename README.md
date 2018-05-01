@@ -13,14 +13,14 @@ submissions.
 You will first need to have a RAMP kit, e.g., like 
 https://github.com/ramp-kits/iris :
 
-```> git clone https://github.com/ramp-kits/iris && cd iris```
+```git clone https://github.com/ramp-kits/iris && cd iris```
 
 Then, we will need to train your submissions, making sure
 we save the scores and the predictions:
 
-```> ramp_test_submission --submission starting_kit --save-y-preds```
+```ramp_test_submission --submission starting_kit --save-y-preds```
 
-```> ramp_test_submission --submission random_forest_10_10 --save-y-preds```
+```ramp_test_submission --submission random_forest_10_10 --save-y-preds```
 
 
 Once the submissions are trained, we are ready to use `ramp-leaderboard`:
