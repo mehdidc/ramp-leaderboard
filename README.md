@@ -15,15 +15,15 @@ https://github.com/ramp-kits/iris :
 
 ```git clone https://github.com/ramp-kits/iris && cd iris```
 
-Then, we will need to train your submissions, making sure
-we save the scores and the predictions:
+Then, you will need to train your submissions, making sure
+you save the scores and the predictions:
 
 ```ramp_test_submission --submission starting_kit --save-y-preds```
 
 ```ramp_test_submission --submission random_forest_10_10 --save-y-preds```
 
 
-Once the submissions are trained, we are ready to use `ramp-leaderboard`:
+Once the submissions are trained, you are ready to use `ramp-leaderboard`:
 
 ```
 > ramp_leaderboard
@@ -50,7 +50,7 @@ By default only one default metric is displayed, but it is customizable:
 +----+---------------------+--------------+--------------+--------------+
 ```
 
-We could also display specific columns:
+You could also display specific columns:
 
 ```
 > ramp_leaderboard --cols=train_acc,train_nll,valid_nll
