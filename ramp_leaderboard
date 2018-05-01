@@ -3,16 +3,19 @@ import sys
 import os
 from collections import defaultdict
 from tabulate import tabulate
+from sigtools import modifiers
 from clize import run
 
 import numpy as np
 import pandas as pd
 
 
-def main(*, ramp_kit_folder='.', cols=None,
+@modifiers.kwoargs('ramp_kit_folder', 'cols', 'sort_by',
+                   'asc', 'metric', 'precision', 'help_cols',
+                   'help_metrics')
+def main(ramp_kit_folder='.', cols=None,
          sort_by=None, asc=False, metric=None,
          precision=2, help_cols=False, help_metrics=False):
-
     """
     RAMP leaderboard, a simple command line to display
     the leaderboard.
@@ -28,7 +31,7 @@ def main(*, ramp_kit_folder='.', cols=None,
         "metric_step" where metric could be e.g., "nll", or "acc", and step
         could be "train", "valid", or "test".
     :param sort_by: list of columns (separated by ",") to sort the leaderboard.
-        By default sort it is [test_metric, valid_metric, train_metric]
+        By default it is "test_metric,valid_metric,train_metric"
         where metric is the first metric according to alphabetical order if
         --metric is not provided otherwise the metric provided by --metric.
     :param asc: sort ascending if True, otherwise descending

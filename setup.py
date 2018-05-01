@@ -45,6 +45,7 @@ if __name__ == "__main__":
             'clize',
             'numpy',
             'pandas',
+            'sigtools',
         ],
         platforms='any',
         packages=find_packages(),
