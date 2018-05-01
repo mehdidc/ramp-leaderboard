@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from __future__ import print_function
+from __future__ import unicode_literals
 import sys
 import os
 from collections import defaultdict
@@ -53,7 +55,7 @@ def main(ramp_kit_folder='.', cols=None,
     """
     try:
         scores = _build_scores_dict(ramp_kit_folder)
-    except FileNotFoundError as ex:
+    except (IOError, OSError) as ex:
         print(ex)
         sys.exit(1)
 
