@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import sys
 import os
 from collections import defaultdict
@@ -161,7 +162,6 @@ def _build_leaderboard_df(scores_dict, precision=2):
                 fmt = '{:.' + str(precision + 1) + 'f}'
                 std = std_scores.loc[step, metric]
                 std = fmt.format(std)
-
                 row[colname] = '{} ± {}'.format(mu, std)
                 row[colname + '_mean'] = mu
                 row[colname + '_std'] = std
