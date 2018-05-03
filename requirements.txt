@@ -1,5 +1,3 @@
 tabulate
-clize
 numpy
 pandas
-sigtools
