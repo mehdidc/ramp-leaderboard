@@ -1,1 +1,8 @@
-ramp_leaderboard.egg-info/
+*.pyc
+*.profile
+
+*.egg-info
+.cache
+*__pycache__
+
+.idea/
