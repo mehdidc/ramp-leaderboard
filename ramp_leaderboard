@@ -72,6 +72,14 @@ def create_ramp_leaderboard_parser():
         help='Sort descending'
     )
     parser.add_argument(
+        '--table-format',
+        default='grid',
+        type=str,
+        help='The display format of the table. Can be one of the styles shown'
+             'at https://bitbucket.org/astanin/python-tabulate (e.g. grid, '
+             'simple, fancy_grid).'
+    )
+    parser.add_argument(
         '--help-cols',
         dest='help_cols',
         action='store_true',
@@ -112,6 +120,9 @@ def ramp_leaderboard():
         specify the metric to display. For example, --metric=acc is
         equivalent to --cols=train_acc,valid_acc,test_acc.
     :param precision: precision for rounding
+    :param table-format: The display format of the table. Can be one of the
+        styles shown at https://bitbucket.org/astanin/python-tabulate (e.g.
+        grid, simple, fancy_grid).
     :param help-cols: get the list of columns
     :param help-metrics: get the list of metrics
 
@@ -128,6 +139,7 @@ def ramp_leaderboard():
 
     try:
         scores = _build_scores_dict(args.ramp_kit_dir)
+        times = _build_times_dict(args.ramp_kit_dir)
     except (IOError, OSError) as ex:
         print(ex)
         sys.exit(1)
@@ -139,7 +151,7 @@ def ramp_leaderboard():
               '<name> --save-y-preds` in order to save the predictions)')
         sys.exit(0)
 
-    df = _build_leaderboard_df(scores, precision=args.precision)
+    df = _build_leaderboard_df(scores, times, precision=args.precision)
     if args.help_cols:
         for col in df.columns:
             print(col)
@@ -202,7 +214,7 @@ def ramp_leaderboard():
                      for step in ('test', 'valid', 'train')]
     df = df.sort_values(by=sort_cols, ascending=args.asc)
     df = df[['submission'] + show_cols]
-    print(tabulate(df, headers='keys', tablefmt='grid'))
+    print(tabulate(df, headers='keys', tablefmt=args.table_format))
 
 
 def _get_metrics(df):
@@ -215,18 +227,24 @@ def _get_metrics(df):
     return metrics
 
 
-def _build_leaderboard_df(scores_dict, precision=2):
+def _build_leaderboard_df(scores_dict, times_dict, precision=2):
     rows = []
     for submission_name, scores_folds in scores_dict.items():
         scs = scores_folds.values()
+        times = times_dict[submission_name].values()
+
         mean_scores = sum([s for s in scs]) / len(scs)
         std_scores = np.sqrt(
             sum([s**2 for s in scs]) / len(scs) -
             mean_scores ** 2
         )
+
+        total_times = sum([t for t in times])
+
         row = {}
         row['submission'] = submission_name
         for step in mean_scores.index.values:
+            # Handle regular metrics
             for metric in mean_scores.columns:
                 colname = '{}_{}'.format(step, metric)
 
@@ -240,6 +258,18 @@ def _build_leaderboard_df(scores_dict, precision=2):
                 row[colname] = '{} ± {}'.format(mu, std)
                 row[colname + '_mean'] = mu
                 row[colname + '_std'] = std
+
+            # Handle times
+            for metric in total_times.columns:
+                colname = '{}_{}'.format(step, metric)
+
+                total_time = total_times.loc[step, metric]
+                fmt = '{:.' + str(precision) + 'f}'
+                total_time = fmt.format(total_time)
+
+                row[colname] = total_time
+                row[colname + '_total'] = total_time
+
         rows.append(row)
     columns_order = [
         '{}_{}'.format(step, metric)
@@ -251,6 +281,17 @@ def _build_leaderboard_df(scores_dict, precision=2):
         for metric in mean_scores.columns
         for step in ('train', 'valid', 'test')
         for part in ('mean', 'std')
+    ]
+    columns_order += [
+        '{}_{}'.format(step, metric)
+        for metric in total_times.columns
+        for step in ('train', 'valid', 'test')
+    ]
+    columns_order += [
+        '{}_{}_{}'.format(step, metric, part)
+        for metric in total_times.columns
+        for step in ('train', 'valid', 'test')
+        for part in ('total',)
     ]
     return pd.DataFrame(rows, columns=['submission'] + columns_order)
 
@@ -276,6 +317,51 @@ def _build_scores_dict(ramp_kit_dir='.'):
             fold_scores = fold_scores.set_index('step')
             scores[submission_name][fold_number] = fold_scores
     return scores
+
+
+def _build_times_dict(ramp_kit_dir='.'):
+    submissions_folder = os.path.join(ramp_kit_dir, 'submissions')
+    times = defaultdict(dict)
+    for submission_name in os.listdir(submissions_folder):
+        submission_folder = os.path.join(submissions_folder, submission_name)
+        training_output = os.path.join(submission_folder, 'training_output')
+        if not os.path.exists(training_output):
+            continue
+        for fold_name in os.listdir(training_output):
+            if not fold_name.startswith('fold_'):
+                continue
+            _, fold_number = fold_name.split('_')
+            fold_number = int(fold_number)
+            times_for_fold = []
+
+            train_time_file = os.path.join(
+                training_output, fold_name, 'train_time')
+            valid_time_file = os.path.join(
+                training_output, fold_name, 'valid_time')
+            test_time_file = os.path.join(
+                training_output, fold_name, 'test_time')
+
+            if os.path.exists(train_time_file):
+                with open(train_time_file) as f:
+                    train_time = float(f.read())
+                    times_for_fold.append(
+                        {'step': 'train', 'time': train_time})
+
+            if os.path.exists(valid_time_file):
+                with open(valid_time_file) as f:
+                    valid_time = float(f.read())
+                    times_for_fold.append(
+                        {'step': 'valid', 'time': valid_time})
+
+            if os.path.exists(test_time_file):
+                with open(test_time_file) as f:
+                    test_time = float(f.read())
+                    times_for_fold.append({'step': 'test', 'time': test_time})
+
+            times_for_fold = pd.DataFrame(times_for_fold)
+            times_for_fold = times_for_fold.set_index('step')
+            times[submission_name][fold_number] = times_for_fold
+    return times
 
 
 if __name__ == '__main__':
